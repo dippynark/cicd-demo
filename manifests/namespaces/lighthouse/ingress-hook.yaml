@@ -1,0 +1,23 @@
+---
+# Source: local/templates/lighthouse/ingress.yaml
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: hook
+  namespace: lighthouse
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - lighthouse.dippynark.co.uk
+      secretName: lighthouse-hook-tls
+  rules:
+    - host: lighthouse.dippynark.co.uk
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: hook
+              servicePort: 80

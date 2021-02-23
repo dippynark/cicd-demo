@@ -1,0 +1,51 @@
+---
+# https://github.com/jenkins-x/lighthouse/blob/master/pkg/config/lighthouse/config.go
+apiVersion: v1
+data:
+  config.yaml: |
+    branch-protection:
+      protect-tested-repos: true
+    github:
+      LinkURL: null
+    in_repo_config:
+      enabled:
+        {{.Values.github.owner}}/{{.Values.github.repository}}: true
+    plank: {}
+    pod_namespace: lighthouse
+    prowjob_namespace: lighthouse
+    push_gateway:
+      serve_metrics: false
+    tide:
+      context_options:
+        from-branch-protection: true
+        required-if-present-contexts: null
+        skip-unknown-contexts: false
+      merge_method:
+        {{.Values.github.owner}}/{{.Values.github.repository}}: merge
+      queries:
+      - labels:
+        - approved
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - {{.Values.github.owner}}/{{.Values.github.repository}}
+      - labels:
+        - updatebot
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - {{.Values.github.owner}}/{{.Values.github.repository}}
+      target_url: https://tekton.{{.Values.domain}}
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: config
+  namespace: lighthouse

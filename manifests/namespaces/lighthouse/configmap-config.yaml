@@ -1,0 +1,52 @@
+---
+# Source: local/templates/lighthouse/config.yaml
+# https://github.com/jenkins-x/lighthouse/blob/master/pkg/config/lighthouse/config.go
+apiVersion: v1
+data:
+  config.yaml: |
+    branch-protection:
+      protect-tested-repos: true
+    github:
+      LinkURL: null
+    in_repo_config:
+      enabled:
+        dippynark/cicd-demo: true
+    plank: {}
+    pod_namespace: lighthouse
+    prowjob_namespace: lighthouse
+    push_gateway:
+      serve_metrics: false
+    tide:
+      context_options:
+        from-branch-protection: true
+        required-if-present-contexts: null
+        skip-unknown-contexts: false
+      merge_method:
+        dippynark/cicd-demo: merge
+      queries:
+      - labels:
+        - approved
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - dippynark/cicd-demo
+      - labels:
+        - updatebot
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - dippynark/cicd-demo
+      target_url: https://tekton.dippynark.co.uk
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: config
+  namespace: lighthouse

@@ -1,0 +1,23 @@
+git:
+  kind: github
+  name: github
+  server: https://github.com
+
+user: GITHUB_BOT
+oauthToken: fake
+hmacToken: fake
+
+cluster:
+  crds:
+    create: true
+
+tektoncontroller:
+  dashboardURL: https://tekton.DOMAIN
+  dashboardTemplate: '#/namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}'
+
+engines:
+  jx: false
+  tekton: true
+
+webhooks:
+  terminationGracePeriodSeconds: 1

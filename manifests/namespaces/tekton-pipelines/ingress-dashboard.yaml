@@ -1,0 +1,23 @@
+---
+# Source: local/templates/tekton-pipelines/ingress.yaml
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: dashboard
+  namespace: tekton-pipelines
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - tekton.dippynark.co.uk
+      secretName: tekton-dashboard-tls
+  rules:
+    - host: tekton.dippynark.co.uk
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: tekton-dashboard
+              servicePort: 9097

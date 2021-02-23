@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: istio
+spec:
+  serviceAccountName: istio
+  pipelineSpec:
+    params:
+    # https://github.com/jenkins-x/lighthouse/blob/master/pkg/triggerconfig/inrepo/default_parameters.go
+    - description: git url to clone
+      name: REPO_URL
+      type: string
+    - description: the base git reference of the pull request
+      name: PULL_BASE_REF
+      type: string
+    tasks:
+    - name: install
+      params:
+      - name: REPO_URL
+        value: $(params.REPO_URL)
+      - name: PULL_BASE_REF
+        value: $(params.PULL_BASE_REF)
+      taskSpec:
+        params:
+        - description: git url to clone
+          name: REPO_URL
+          type: string
+        - description: the base git reference of the pull request
+          name: PULL_BASE_REF
+          type: string
+        stepTemplate:
+          name: ""
+          volumeMounts:
+          - mountPath: /workspace
+            name: workspace
+        steps:
+        - name: git-clone
+          image: alpine/git:v2.30.1
+          command:
+          - /bin/sh
+          args:
+          - -ce
+          - |
+            git clone $(inputs.params.REPO_URL) source
+            cd source
+            git checkout $(inputs.params.PULL_BASE_REF)
+          workingDir: /workspace
+        - name: generate
+          image: dippynark/cicd-demo:v1.0.0
+          imagePullPolicy: Always
+          command:
+          - addons/istio/install.sh
+          workingDir: /workspace/source
+        volumes:
+        - name: workspace
+          emptyDir: {}

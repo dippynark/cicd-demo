@@ -1,0 +1,14 @@
+env:
+  secretName: flux-git-auth
+
+git:
+  url: https://$(GIT_AUTHUSER):$(GIT_AUTHKEY)@github.com/dippynark/cicd-demo.git
+  branch: main
+  path: manifests
+  pollInterval: 1m
+
+registry:
+  disableScanning: true
+
+syncGarbageCollection:
+  enabled: true
