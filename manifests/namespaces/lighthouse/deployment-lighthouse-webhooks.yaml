@@ -1,0 +1,82 @@
+---
+# Source: lighthouse/templates/webhooks-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: lighthouse
+  name: lighthouse-webhooks
+  labels:
+    draft: draft-app
+    chart: "lighthouse-0.0.922"
+    app: lighthouse-webhooks
+  annotations:
+    checksum/config: a7aaadfea0c2f5ad66ea34a15237ee1e71c9890a80a390bd278df78dc76b2a44
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      draft: draft-app
+      app: lighthouse-webhooks
+  template:
+    metadata:
+      labels:
+        draft: draft-app
+        app: lighthouse-webhooks
+    spec:
+      serviceAccountName: lighthouse-webhooks
+      containers:
+        - name: lighthouse-webhooks
+          image: gcr.io/jenkinsxio/lighthouse-webhooks:0.0.922
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--namespace=lighthouse"
+          env:
+            - name: "GIT_KIND"
+              value: "github"
+            - name: "LH_CUSTOM_TRIGGER_COMMAND"
+              value: ""
+            - name: "GIT_SERVER"
+              value: "https://github.com"
+            - name: "GIT_USER"
+              value: dippynark-bot
+            - name: "GIT_TOKEN"
+              valueFrom:
+                secretKeyRef:
+                  name: lighthouse-oauth-token
+                  key: oauth
+            - name: "HMAC_TOKEN"
+              valueFrom:
+                secretKeyRef:
+                  name: "lighthouse-hmac-token"
+                  key: hmac
+            - name: "JX_LOG_FORMAT"
+              value: "json"
+            - name: "LOGRUS_FORMAT"
+              value: "json"
+            - name: JX_DEFAULT_IMAGE
+              value: ""
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 512Mi
+            requests:
+              cpu: 80m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 1
