@@ -1,0 +1,78 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: release
+spec:
+  serviceAccountName: tekton-bot
+  pipelineSpec:
+    params:
+    # https://github.com/jenkins-x/lighthouse/blob/master/pkg/triggerconfig/inrepo/default_parameters.go
+    - description: git url to clone
+      name: REPO_URL
+      type: string
+    - description: the base git reference of the pull request
+      name: PULL_BASE_REF
+      type: string
+    tasks:
+    - name: generate
+      params:
+      - name: REPO_URL
+        value: $(params.REPO_URL)
+      - name: PULL_BASE_REF
+        value: $(params.PULL_BASE_REF)
+      taskSpec:
+        params:
+        - description: git url to clone
+          name: REPO_URL
+          type: string
+        - description: the base git reference of the pull request
+          name: PULL_BASE_REF
+          type: string
+        stepTemplate:
+          name: ""
+          volumeMounts:
+          - mountPath: /workspace
+            name: workspace
+        steps:
+        - name: git-clone
+          image: alpine/git:v2.30.1
+          command:
+          - /bin/sh
+          args:
+          - -ce
+          - |
+            git clone $(inputs.params.REPO_URL) source
+            cd source
+            git checkout $(inputs.params.PULL_BASE_REF)
+          workingDir: /workspace
+        - name: generate
+          image: dippynark/cicd-demo:v1.0.0
+          command:
+          - make
+          args:
+          - generate
+          workingDir: /workspace/source
+        - name: push
+          image: alpine/git:v2.30.1
+          env:
+          - name: HOME
+            value: /tekton/home
+          envFrom:
+          - secretRef:
+              name: tekton-git-identity
+          command:
+          - /bin/sh
+          args:
+          - -ce
+          - |
+            if [ -n "$(git status --porcelain)" ]; then
+              git status
+              git add --all
+              git commit -m "Generated"
+              git pull --rebase
+              git push
+            fi
+          workingDir: /workspace/source
+        volumes:
+        - name: workspace
+          emptyDir: {}
