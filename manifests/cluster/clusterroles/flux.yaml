@@ -1,0 +1,23 @@
+---
+# Source: flux/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  namespace: flux
+  name: flux
+  labels:
+    app: flux
+    chart: flux-1.6.2
+    release: flux
+    heritage: Helm
+rules:
+  - apiGroups:
+      - '*'
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - nonResourceURLs:
+      - '*'
+    verbs:
+      - '*'
