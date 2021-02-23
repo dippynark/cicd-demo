@@ -1,0 +1,147 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: cluster
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: main
+  secretRef:
+    name: flux-system
+  url: ssh://git@github.com/dippynark/cicd-demo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+kind: Kustomization
+metadata:
+  name: cluster
+  namespace: flux-system
+spec:
+  interval: 1m
+  path: ./config/flavours/management
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  patchesJson6902:
+  - target:
+      kind: Ingress
+      name: hook
+    patch:
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: lighthouse.dippynark.co.uk
+    - op: replace
+      path: /spec/rules/0/host
+      value: lighthouse.dippynark.co.uk
+  - target:
+      kind: Ingress
+      name: dashboard
+    patch:
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: tekton.dippynark.co.uk
+    - op: replace
+      path: /spec/rules/0/host
+      value: tekton.dippynark.co.uk
+  - target:
+      kind: HelmRelease
+      name: lighthouse
+    patch:
+    - op: add
+      path: /spec/values/user
+      value: dippynark-bot
+    - op: add
+      path: /spec/values/tektoncontroller/dashboardURL
+      value: https://tekton.dippynark.co.uk
+    - op: add
+      path: /spec/values/configMaps/plugins
+      value: |
+        approve:
+        - lgtm_acts_as_approve: false
+          repos:
+          - dippynark/cicd-demo
+          require_self_approval: true
+        cat: {}
+        cherry_pick_unapproved: {}
+        config_updater:
+          gzip: false
+        heart: {}
+        label:
+          additional_labels: null
+        owners: {}
+        plugins:
+          dippynark/cicd-demo:
+          - approve
+          - assign
+          - blunderbuss
+          - help
+          - hold
+          - lgtm
+          - lifecycle
+          - override
+          - size
+          - trigger
+          - wip
+          - heart
+          - cat
+          - dog
+          - pony
+        requiresig: {}
+        sigmention: {}
+        size:
+          l: 0
+          m: 0
+          s: 0
+          xl: 0
+          xxl: 0
+        triggers:
+        - repos:
+          - dippynark/cicd-demo
+        welcome:
+        - message_template: Welcome
+    - op: add
+      path: /spec/values/configMaps/config
+      value: |
+        branch-protection:
+          protect-tested-repos: true
+        github:
+          LinkURL: null
+        in_repo_config:
+          enabled:
+            dippynark/cicd-demo: true
+        plank: {}
+        pod_namespace: lighthouse
+        prowjob_namespace: lighthouse
+        push_gateway:
+          serve_metrics: false
+        tide:
+          context_options:
+            from-branch-protection: true
+            required-if-present-contexts: null
+            skip-unknown-contexts: false
+          merge_method:
+            dippynark/cicd-demo: merge
+          queries:
+          - labels:
+            - approved
+            missingLabels:
+            - do-not-merge
+            - do-not-merge/hold
+            - do-not-merge/work-in-progress
+            - needs-ok-to-test
+            - needs-rebase
+            repos:
+            - dippynark/cicd-demo
+          - labels:
+            - updatebot
+            missingLabels:
+            - do-not-merge
+            - do-not-merge/hold
+            - do-not-merge/work-in-progress
+            - needs-ok-to-test
+            - needs-rebase
+            repos:
+            - dippynark/cicd-demo
+          target_url: https://tekton.dippynark.co.uk

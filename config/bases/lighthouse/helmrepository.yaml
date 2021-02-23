@@ -1,0 +1,7 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: lighthouse
+spec:
+  interval: 1m
+  url: http://chartmuseum.jenkins-x.io

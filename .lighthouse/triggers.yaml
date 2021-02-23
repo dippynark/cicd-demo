@@ -1,0 +1,16 @@
+# https://github.com/jenkins-x/lighthouse/blob/master/pkg/triggerconfig/types.go
+apiVersion: config.lighthouse.jenkins-x.io/v1alpha1
+kind: TriggerConfig
+spec:
+  presubmits:
+  - name: pr
+    always_run: true
+    trigger: /test
+    rerun_command: /retest
+    source: pr.yaml
+  postsubmits:
+  - name: release
+    source: release.yaml
+    branches:
+    - main
+    - master

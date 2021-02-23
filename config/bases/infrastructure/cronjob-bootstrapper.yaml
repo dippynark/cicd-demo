@@ -1,0 +1,47 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: bootstrapper
+  namespace: infrastructure
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: bootstrapper
+          containers:
+          - name: bootstrapper
+            image: dippynark/cicd-demo:v1.0.0
+            envFrom:
+            - secretRef:
+                name: git-auth
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+
+              CLUSTERS=$(kubectl get clusters -n infrastructure -l bootstrapped!=true --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
+              
+              # Label Cluster to match ClusterResourceSet for Calico installation
+              for CLUSTER in $CLUSTERS; do
+                kubectl label cluster -n infrastructure $CLUSTER cni=calico --overwrite
+              done
+
+              # Bootstrap with Flux
+              KUBECONFIG="kubeconfig"
+              for CLUSTER in $CLUSTERS; do
+                kubectl get secret -n infrastructure "${CLUSTER}-kubeconfig" -o jsonpath='{.data.value}' | base64 --decode > $KUBECONFIG
+                flux bootstrap github \
+                  --owner=$GITHUB_OWNER \
+                  --repository=$GITHUB_REPOSITORY \
+                  --path=clusters/$CLUSTER \
+                  --personal \
+                  --kubeconfig $KUBECONFIG
+                kubectl label cluster -n infrastructure $CLUSTER bootstrapped=true --overwrite
+              done

@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ./resources/cluster/clusterrolebindings/ingress-nginx-admission.yaml
+- ./resources/cluster/clusterrolebindings/ingress-nginx.yaml
+- ./resources/cluster/clusterroles/ingress-nginx-admission.yaml
+- ./resources/cluster/clusterroles/ingress-nginx.yaml
+- ./resources/cluster/namespaces/ingress-nginx.yaml
+- ./resources/cluster/validatingwebhookconfigurations/ingress-nginx-admission.yaml
+- ./resources/namespaces/ingress-nginx/configmap-ingress-nginx-controller.yaml
+- ./resources/namespaces/ingress-nginx/deployment-ingress-nginx-controller.yaml
+- ./resources/namespaces/ingress-nginx/job-ingress-nginx-admission-create.yaml
+- ./resources/namespaces/ingress-nginx/job-ingress-nginx-admission-patch.yaml
+- ./resources/namespaces/ingress-nginx/role-ingress-nginx-admission.yaml
+- ./resources/namespaces/ingress-nginx/role-ingress-nginx.yaml
+- ./resources/namespaces/ingress-nginx/rolebinding-ingress-nginx-admission.yaml
+- ./resources/namespaces/ingress-nginx/rolebinding-ingress-nginx.yaml
+- ./resources/namespaces/ingress-nginx/service-ingress-nginx-controller-admission.yaml
+- ./resources/namespaces/ingress-nginx/service-ingress-nginx-controller.yaml
+- ./resources/namespaces/ingress-nginx/serviceaccount-ingress-nginx-admission.yaml
+- ./resources/namespaces/ingress-nginx/serviceaccount-ingress-nginx.yaml

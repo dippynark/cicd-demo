@@ -1,0 +1,8 @@
+namespace: lighthouse
+
+resources:
+- namespace.yaml
+- helmrelease.yaml
+- helmrepository.yaml
+- ingress.yaml
+- tekton-bot-service-account.yaml

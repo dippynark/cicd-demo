@@ -1,0 +1,107 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-kubernetes
+  name: capk-manager-role
+rules:
+  - apiGroups:
+      - cluster.x-k8s.io
+    resources:
+      - clusters
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - cluster.x-k8s.io
+    resources:
+      - machines
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - infrastructure.dippynark.co.uk
+    resources:
+      - kubernetesclusters
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - infrastructure.dippynark.co.uk
+    resources:
+      - kubernetesclusters/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - infrastructure.dippynark.co.uk
+    resources:
+      - kubernetesmachines
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - infrastructure.dippynark.co.uk
+    resources:
+      - kubernetesmachines/status
+    verbs:
+      - get
+      - patch
+      - update

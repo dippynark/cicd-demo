@@ -1,0 +1,13 @@
+apiVersion: addons.cluster.x-k8s.io/v1alpha3
+kind: ClusterResourceSet
+metadata:
+  name: calico-addon
+  namespace: infrastructure
+spec:
+  strategy: ApplyOnce
+  clusterSelector:
+    matchLabels:
+      cni: calico
+  resources:
+  - name: calico-addon
+    kind: ConfigMap

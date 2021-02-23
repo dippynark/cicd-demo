@@ -1,0 +1,7 @@
+bases:
+- ../../bases/cert-manager
+- ../../bases/cluster-api
+- ../../bases/infrastructure
+- ../../bases/ingress-nginx
+- ../../bases/lighthouse
+- ../../bases/tekton-pipelines

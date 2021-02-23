@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ./clusterresourceset-calico-addon.yaml
+- ./configmap-calico-addon.yaml
+- ./cronjob-bootstrapper.yaml
+- ./namespace.yaml
+- ./rolebinding-bootstrapper.yaml
+- ./serviceaccount-bootstrapper.yaml
