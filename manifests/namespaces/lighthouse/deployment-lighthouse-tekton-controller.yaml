@@ -1,0 +1,49 @@
+---
+# Source: lighthouse/templates/tekton-controller-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: lighthouse
+  name: lighthouse-tekton-controller
+  labels:
+    chart: "lighthouse-0.0.936"
+    app: lighthouse-tekton-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lighthouse-tekton-controller
+  template:
+    metadata:
+      labels:
+        app: lighthouse-tekton-controller
+      annotations: {}
+    spec:
+      serviceAccountName: lighthouse-tekton-controller
+      containers:
+        - name: lighthouse-tekton-controller
+          image: gcr.io/jenkinsxio/lighthouse-tekton-controller:0.0.936
+          imagePullPolicy: IfNotPresent
+          args:
+            - --namespace=lighthouse
+            - --dashboard-url=https://tekton.lukeaddison.co.uk
+            - --dashboard-template=namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}
+          ports:
+            - name: metrics
+              containerPort: 8080
+          env:
+            - name: "LOGRUS_FORMAT"
+              value: "json"
+            - name: JX_DEFAULT_IMAGE
+              value: ""
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 80m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 180
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []

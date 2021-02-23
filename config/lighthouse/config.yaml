@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+data:
+  config.yaml: |
+    branch-protection:
+      protect-tested-repos: true
+    github:
+      LinkURL: null
+    in_repo_config:
+      enabled:
+        GITHUB_OWNER/GITHUB_REPOSITORY: true
+    plank: {}
+    pod_namespace: lighthouse
+    prowjob_namespace: lighthouse
+    push_gateway:
+      serve_metrics: false
+    tide:
+      context_options:
+        from-branch-protection: true
+        required-if-present-contexts: null
+        skip-unknown-contexts: false
+      merge_method:
+        GITHUB_OWNER/GITHUB_REPOSITORY: merge
+      queries:
+      - labels:
+        - approved
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - GITHUB_OWNER/GITHUB_REPOSITORY
+      - labels:
+        - updatebot
+        missingLabels:
+        - do-not-merge
+        - do-not-merge/hold
+        - do-not-merge/work-in-progress
+        - needs-ok-to-test
+        - needs-rebase
+        repos:
+        - GITHUB_OWNER/GITHUB_REPOSITORY
+      target_url: https://tekton.DOMAIN
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: config
+  namespace: lighthouse

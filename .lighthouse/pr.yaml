@@ -1,0 +1,75 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pr
+spec:
+  serviceAccountName: tekton-bot
+  pipelineSpec:
+    params:
+    - description: git url to clone
+      name: REPO_URL
+      type: string
+    - description: git revision to checkout (branch, tag, sha, ref…)
+      name: PULL_PULL_SHA
+      type: string
+    tasks:
+    - name: generate
+      params:
+      - name: REPO_URL
+        value: $(params.REPO_URL)
+      - name: PULL_PULL_SHA
+        value: $(params.PULL_PULL_SHA)
+      taskSpec:
+        params:
+        - description: git url to clone
+          name: REPO_URL
+          type: string
+        - description: git revision to checkout (branch, tag, sha, ref…)
+          name: PULL_PULL_SHA
+          type: string
+        stepTemplate:
+          name: ""
+          volumeMounts:
+          - mountPath: /workspace
+            name: workspace
+        steps:
+        - name: git-clone
+          image: alpine/git:v2.30.1
+          command:
+          - /bin/sh
+          args:
+          - -ce
+          - |
+            git clone $(inputs.params.REPO_URL) source
+            cd source
+            git checkout $(inputs.params.PULL_PULL_SHA)
+          workingDir: /workspace
+        - name: generate
+          image: dippynark/cicd-demo:v1.0.0
+          command:
+          - make
+          args:
+          - generate
+          workingDir: /workspace/source
+        - name: push
+          image: alpine/git:v2.30.1
+          env:
+          - name: HOME
+            value: /tekton/home
+          envFrom:
+          - secretRef:
+              name: tekton-git-identity
+          command:
+          - /bin/sh
+          args:
+          - -ce
+          - |
+            git add --all
+            git status
+            git commit -m "Generated" || true
+            git pull --rebase
+            git push
+          workingDir: /workspace/source
+        volumes:
+        - name: workspace
+          emptyDir: {}

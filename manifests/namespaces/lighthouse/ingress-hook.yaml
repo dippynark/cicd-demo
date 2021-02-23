@@ -1,0 +1,22 @@
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: hook
+  namespace: lighthouse
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - hook.lighthouse.lukeaddison.co.uk
+      secretName: hook-lighthouse-tls
+  rules:
+    - host: hook.lighthouse.lukeaddison.co.uk
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: hook
+              servicePort: 80
