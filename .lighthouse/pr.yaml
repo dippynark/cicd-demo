@@ -70,7 +70,7 @@ spec:
               git add --all
               git commit -m "Generated"
               git pull origin $(inputs.params.PULL_PULL_REF) --rebase
-              git push origin $(inputs.params.PULL_PULL_REF)
+              git push origin pr:$(inputs.params.PULL_PULL_REF)
             fi
           workingDir: /workspace/source
         volumes:
