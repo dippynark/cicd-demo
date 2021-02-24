@@ -10,8 +10,8 @@ cluster:
   crds:
     create: true
 
-# tektoncontroller:
-#   dashboardTemplate: namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}
+tektoncontroller:
+  dashboardTemplate: '#/namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}'
 
 engines:
   jx: false

@@ -1,6 +1,6 @@
 DOCKER_IMAGE = dippynark/cicd-demo:v1.0.0
 
-DOMAIN = lukeaddison.co.uk
+DOMAIN = dippynark.co.uk
 GITHUB_USERNAME = dippynark-bot
 GITHUB_OWNER = dippynark
 GITHUB_REPOSITORY = cicd-demo
@@ -44,6 +44,8 @@ tekton_pipelines:
 	# https://github.com/tektoncd/dashboard/blob/master/docs/install.md
 	curl -L  https://storage.googleapis.com/tekton-releases/dashboard/previous/v$(TEKTON_DASHBOARD_VERSION)/tekton-dashboard-release.yaml \
 		-o $(STAGING_DIR)/tekton-dashboard.yaml
+	cat config/tekton-pipelines/ingress.yaml \
+		| sed 's/DOMAIN/$(DOMAIN)/g' > $(STAGING_DIR)/tekton-dashboard-ingress.yaml
 
 lighthouse:
 	helm template lighthouse \
@@ -57,7 +59,7 @@ lighthouse:
 		> $(STAGING_DIR)/lighthouse.yaml
 	cp config/lighthouse/tekton-bot-service-account.yaml $(STAGING_DIR)
 	cat config/lighthouse/ingress.yaml \
-		| sed 's/DOMAIN/$(DOMAIN)/g' > $(STAGING_DIR)/ingress.yaml
+		| sed 's/DOMAIN/$(DOMAIN)/g' > $(STAGING_DIR)/lighthouse-hook-ingress.yaml
 	cat config/lighthouse/config.yaml \
 		| sed 's/DOMAIN/$(DOMAIN)/g' \
 		| sed 's/GITHUB_OWNER/$(GITHUB_OWNER)/g' \
