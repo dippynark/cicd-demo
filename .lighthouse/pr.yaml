@@ -73,7 +73,6 @@ spec:
           - -ce
           - |
             if [ -n "$(git status --porcelain)" ]; then
-              sleep 10000000
               git status
               git add --all
               git commit -m "Generated"
