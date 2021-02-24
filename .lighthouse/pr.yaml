@@ -64,7 +64,7 @@ spec:
           args:
           - -ce
           - |
-            git status --porcelain
+            sleep 100000000
             if [ -n "$(git status --porcelain)" ]; then
               git status
               git add --all
