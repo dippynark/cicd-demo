@@ -133,6 +133,7 @@ Try to make a change and watch it sync to the cluster.
 kubectl port-forward -n tekton-pipelines svc/tekton-dashboard 9097
 ```
 
+
 ```sh
 make docker_generate
 ```
