@@ -11,7 +11,7 @@ cluster:
     create: true
 
 tektoncontroller:
-  dashboardTemplate: '#/namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}'
+  dashboardTemplate: 'namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}'
 
 engines:
   jx: false
