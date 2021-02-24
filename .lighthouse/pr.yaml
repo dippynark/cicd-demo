@@ -9,23 +9,23 @@ spec:
     - description: git url to clone
       name: REPO_URL
       type: string
-    - description: the base git reference of the pull request
-      name: PULL_BASE_REF
+    - description: git pull request ref in the form 'refs/pull/$PULL_NUMBER/head'
+      name: PULL_PULL_REF
       type: string
     tasks:
     - name: generate
       params:
       - name: REPO_URL
         value: $(params.REPO_URL)
-      - name: PULL_BASE_REF
-        value: $(params.PULL_BASE_REF)
+      - name: PULL_PULL_REF
+        value: $(params.PULL_PULL_REF)
       taskSpec:
         params:
         - description: git url to clone
           name: REPO_URL
           type: string
-        - description: the base git reference of the pull request
-          name: PULL_BASE_REF
+        - description: git pull request ref in the form 'refs/pull/$PULL_NUMBER/head'
+          name: PULL_PULL_REF
           type: string
         stepTemplate:
           name: ""
@@ -42,7 +42,8 @@ spec:
           - |
             git clone $(inputs.params.REPO_URL) source
             cd source
-            git checkout $(inputs.params.PULL_BASE_REF)
+            git fetch origin $(inputs.params.PULL_PULL_REF):pr
+            git checkout pr
           workingDir: /workspace
         - name: generate
           image: dippynark/cicd-demo:v1.0.0
@@ -64,7 +65,6 @@ spec:
           args:
           - -ce
           - |
-            sleep 100000000
             if [ -n "$(git status --porcelain)" ]; then
               git status
               git add --all
