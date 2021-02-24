@@ -6,26 +6,23 @@ metadata:
   namespace: lighthouse
   name: lighthouse-tekton-controller
   labels:
-    draft: draft-app
-    chart: "lighthouse-0.0.922"
+    chart: "lighthouse-0.0.939"
     app: lighthouse-tekton-controller
 spec:
   replicas: 1
   selector:
     matchLabels:
-      draft: draft-app
       app: lighthouse-tekton-controller
   template:
     metadata:
       labels:
-        draft: draft-app
         app: lighthouse-tekton-controller
       annotations: {}
     spec:
       serviceAccountName: lighthouse-tekton-controller
       containers:
         - name: lighthouse-tekton-controller
-          image: gcr.io/jenkinsxio/lighthouse-tekton-controller:0.0.922
+          image: gcr.io/jenkinsxio/lighthouse-tekton-controller:0.0.939
           imagePullPolicy: IfNotPresent
           args:
             - --namespace=lighthouse

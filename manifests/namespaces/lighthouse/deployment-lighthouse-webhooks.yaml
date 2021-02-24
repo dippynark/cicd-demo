@@ -6,27 +6,24 @@ metadata:
   namespace: lighthouse
   name: lighthouse-webhooks
   labels:
-    draft: draft-app
-    chart: "lighthouse-0.0.922"
+    chart: "lighthouse-0.0.939"
     app: lighthouse-webhooks
   annotations:
-    checksum/config: a7aaadfea0c2f5ad66ea34a15237ee1e71c9890a80a390bd278df78dc76b2a44
+    checksum/config: 07519482d37c73f7107d8cbe39fc319ec8dfd2362f5d6a4ef34a2d97e14ebc52
 spec:
   replicas: 1
   selector:
     matchLabels:
-      draft: draft-app
       app: lighthouse-webhooks
   template:
     metadata:
       labels:
-        draft: draft-app
         app: lighthouse-webhooks
     spec:
       serviceAccountName: lighthouse-webhooks
       containers:
         - name: lighthouse-webhooks
-          image: gcr.io/jenkinsxio/lighthouse-webhooks:0.0.922
+          image: gcr.io/jenkinsxio/lighthouse-webhooks:0.0.939
           imagePullPolicy: IfNotPresent
           args:
             - "--namespace=lighthouse"
@@ -49,6 +46,7 @@ spec:
                 secretKeyRef:
                   name: "lighthouse-hmac-token"
                   key: hmac
+                  optional: false
             - name: "JX_LOG_FORMAT"
               value: "json"
             - name: "LOGRUS_FORMAT"

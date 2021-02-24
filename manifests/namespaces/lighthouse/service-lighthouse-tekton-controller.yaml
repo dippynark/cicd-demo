@@ -6,7 +6,7 @@ metadata:
   namespace: lighthouse
   name: lighthouse-tekton-controller
   labels:
-    chart: "lighthouse-0.0.922"
+    chart: "lighthouse-0.0.939"
 spec:
   type: ClusterIP
   ports:
