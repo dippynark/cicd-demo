@@ -42,7 +42,7 @@ spec:
           - |
             git clone $(inputs.params.REPO_URL) source
             cd source
-            git fetch origin $(inputs.params.PULL_PULL_REF):pr
+            git fetch origin $(inputs.params.PULL_PULL_REF):pr --set-upstream
             git checkout pr
           workingDir: /workspace
         - name: generate
