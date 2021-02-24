@@ -6,25 +6,22 @@ metadata:
   namespace: lighthouse
   name: lighthouse-foghorn
   labels:
-    draft: draft-app
-    chart: "lighthouse-0.0.922"
+    chart: "lighthouse-0.0.939"
     app: lighthouse-foghorn
 spec:
   replicas: 1
   selector:
     matchLabels:
-      draft: draft-app
       app: lighthouse-foghorn
   template:
     metadata:
       labels:
-        draft: draft-app
         app: lighthouse-foghorn
     spec:
       serviceAccountName: lighthouse-foghorn
       containers:
         - name: lighthouse-foghorn
-          image: gcr.io/jenkinsxio/lighthouse-foghorn:0.0.922
+          image: gcr.io/jenkinsxio/lighthouse-foghorn:0.0.939
           imagePullPolicy: IfNotPresent
           args:
             - "--namespace=lighthouse"
@@ -45,6 +42,7 @@ spec:
                 secretKeyRef:
                   name: "lighthouse-hmac-token"
                   key: hmac
+                  optional: false
             - name: "JX_LOG_FORMAT"
               value: "json"
             - name: "LOGRUS_FORMAT"
