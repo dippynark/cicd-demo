@@ -8,6 +8,7 @@ Create cluster:
 gcloud container clusters create cicd-demo
 ```
 
+
 Setup secret variables:
 
 ```sh
