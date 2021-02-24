@@ -20,7 +20,10 @@ FLUX_VERSION = 1.6.2
 
 SHELL=/bin/bash -o pipefail
 
-generate: pre cert_manager nginx_ingress tekton_pipelines lighthouse flux format post
+generate: pre cert_manager nginx nginx_ingress tekton_pipelines lighthouse flux format post
+
+nginx:
+	cp config/nginx.yaml $(STAGING_DIR)
 
 pre:
 	helm repo update
