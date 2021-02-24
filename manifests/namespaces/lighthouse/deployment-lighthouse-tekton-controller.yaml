@@ -26,8 +26,8 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --namespace=lighthouse
-            - --dashboard-url=https://tekton.lukeaddison.co.uk
-            - --dashboard-template=namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}
+            - --dashboard-url=https://tekton.dippynark.co.uk
+            - --dashboard-template=#/namespaces/{{ .Namespace }}/pipelineruns/{{ .PipelineRun }}
           ports:
             - name: metrics
               containerPort: 8080

@@ -42,7 +42,7 @@ data:
         - needs-rebase
         repos:
         - dippynark/cicd-demo
-      target_url: https://tekton.lukeaddison.co.uk
+      target_url: https://tekton.dippynark.co.uk
 kind: ConfigMap
 metadata:
   creationTimestamp: null

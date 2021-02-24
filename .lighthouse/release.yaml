@@ -64,11 +64,13 @@ spec:
           args:
           - -ce
           - |
-            git add --all
-            git status
-            git commit -m "Generated" || true
-            git pull --rebase
-            git push
+            if [ -n "$(git status --porcelain)" ]; then
+              git status
+              git add --all
+              git commit -m "Generated"
+              git pull --rebase
+              git push
+            fi
           workingDir: /workspace/source
         volumes:
         - name: workspace
