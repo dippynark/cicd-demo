@@ -9,8 +9,11 @@ spec:
     - description: git url to clone
       name: REPO_URL
       type: string
-    - description: git pull request ref in the form 'refs/pull/$PULL_NUMBER/head'
-      name: PULL_PULL_REF
+    - description: git revision to checkout (branch, tag, sha, ref…)
+      name: PULL_PULL_SHA
+      type: string
+    - description: git pull request number
+      name: PULL_NUMBER
       type: string
     tasks:
     - name: generate
@@ -19,6 +22,8 @@ spec:
         value: $(params.REPO_URL)
       - name: PULL_PULL_REF
         value: $(params.PULL_PULL_REF)
+      - name: PULL_NUMBER
+        value: $(params.PULL_NUMBER)
       taskSpec:
         params:
         - description: git url to clone
@@ -26,6 +31,9 @@ spec:
           type: string
         - description: git pull request ref in the form 'refs/pull/$PULL_NUMBER/head'
           name: PULL_PULL_REF
+          type: string
+        - description: git pull request number
+          name: PULL_NUMBER
           type: string
         stepTemplate:
           name: ""
@@ -42,8 +50,7 @@ spec:
           - |
             git clone --bare $(inputs.params.REPO_URL) source
             cd source
-            git fetch origin $(inputs.params.PULL_PULL_REF):pr
-            git checkout pr
+            git checkout $(inputs.params.PULL_PULL_SHA)
           workingDir: /workspace
         - name: generate
           image: dippynark/cicd-demo:v1.0.0
@@ -53,7 +60,7 @@ spec:
           - generate
           workingDir: /workspace/source
         - name: push
-          image: alpine/git:v2.30.1
+          image: gcr.io/jenkinsxio/jx-cli:3.1.183
           env:
           - name: HOME
             value: /tekton/home
@@ -69,8 +76,7 @@ spec:
               git status
               git add --all
               git commit -m "Generated"
-              git pull origin $(inputs.params.PULL_PULL_REF) --rebase
-              git push origin pr:$(inputs.params.PULL_PULL_REF)
+              jx gitops pr push --pr $(inputs.params.PULL_NUMBER)
             fi
           workingDir: /workspace/source
         volumes:

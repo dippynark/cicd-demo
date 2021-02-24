@@ -9,6 +9,7 @@ spec:
     - description: git url to clone
       name: REPO_URL
       type: string
+    # https://github.com/jenkins-x/lighthouse/blob/master/pkg/triggerconfig/inrepo/default_parameters.go
     - description: the base git reference of the pull request
       name: PULL_BASE_REF
       type: string
