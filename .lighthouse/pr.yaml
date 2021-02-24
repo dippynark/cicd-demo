@@ -40,7 +40,7 @@ spec:
           args:
           - -ce
           - |
-            git clone $(inputs.params.REPO_URL) source
+            git clone --bare $(inputs.params.REPO_URL) source
             cd source
             git fetch origin $(inputs.params.PULL_PULL_REF):pr
             git checkout pr
