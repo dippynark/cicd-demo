@@ -48,7 +48,7 @@ spec:
           args:
           - -ce
           - |
-            git clone --bare $(inputs.params.REPO_URL) source
+            git clone $(inputs.params.REPO_URL) source
             cd source
             git checkout $(inputs.params.PULL_PULL_SHA)
           workingDir: /workspace
