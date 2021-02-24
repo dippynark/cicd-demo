@@ -43,7 +43,6 @@ spec:
             git clone $(inputs.params.REPO_URL) source
             cd source
             git fetch origin $(inputs.params.PULL_PULL_REF):pr
-            git branch --set-upstream-to=$(inputs.params.PULL_PULL_REF) pr
             git checkout pr
           workingDir: /workspace
         - name: generate
@@ -70,8 +69,8 @@ spec:
               git status
               git add --all
               git commit -m "Generated"
-              git pull --rebase
-              git push
+              git pull origin $(inputs.params.PULL_PULL_REF) --rebase
+              git push origin $(inputs.params.PULL_PULL_REF)
             fi
           workingDir: /workspace/source
         volumes:
