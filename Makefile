@@ -11,7 +11,6 @@ MANIFESTS_DIR = manifests
 
 HELM_VERSION = 3.4.0
 KFMT_VERSION = 0.4.1
-ISTIO_VERSION = 1.9.0
 KUBECTL_VERSION = 1.19
 
 BOOKINFO_VERSION = release-1.9
@@ -56,7 +55,6 @@ docker_build:
 	docker build \
 		--build-arg HELM_VERSION=$(HELM_VERSION) \
 		--build-arg KFMT_VERSION=$(KFMT_VERSION) \
-		--build-arg ISTIO_VERSION=$(ISTIO_VERSION) \
 		--build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) \
 		-t $(DOCKER_IMAGE) $(CURDIR)
 

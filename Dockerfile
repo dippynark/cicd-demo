@@ -16,12 +16,6 @@ RUN curl -LO "https://github.com/dippynark/kfmt/releases/download/v${KFMT_VERSIO
   chmod +x kfmt-linux-amd64 && \
   mv kfmt-linux-amd64 /usr/local/bin/kfmt
 
-# istioctl
-ARG ISTIO_VERSION
-RUN curl -L https://istio.io/downloadIstioctl | sh - && \
-  mv "${HOME}/.istioctl/bin/istioctl" /usr/local/bin && \
-  rm -rf "${HOME}/.istioctl"
-
 # kubectl
 ARG KUBECTL_VERSION
 RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable-${KUBECTL_VERSION}.txt)/bin/linux/amd64/kubectl" && \

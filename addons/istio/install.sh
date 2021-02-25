@@ -2,9 +2,19 @@
 
 set -euxo pipefail
 
+ISTIO_TARGET_VERSION="1.8.1"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-ISTIO_TARGET_VERSION="$(istioctl version -o json | grep -v "no running Istio pods" | jq -r '.clientVersion.tag')"
+# Change to script directory
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+# Install Istioctl
+which istioctl || {
+  export ISTIO_VERSION="$ISTIO_TARGET_VERSION"
+  curl -L https://istio.io/downloadIstioctl | sh -
+  export PATH=$HOME/.istioctl/bin:$PATH
+}
+
 ISTIO_TARGET_REVISION=$(echo "$ISTIO_TARGET_VERSION" | tr '.' '-')
 ISTIO_EXISTING_VERSIONS=$(istioctl version -o json | grep -v "no running Istio pods" | jq -r '.meshVersion[]? | .Info.tag')
 
@@ -15,7 +25,7 @@ istioctl install -y \
   --set revision="$ISTIO_TARGET_REVISION"
 
 # Remove Namespaces
-NAMESPACES=$(cat $SCRIPT_DIR/namespaces.txt)
+NAMESPACES=$(cat "$SCRIPT_DIR/namespaces.txt")
 ALL_NAMESPACES=$(kubectl get ns -l istio.io/rev --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
 for NAMESPACE in $ALL_NAMESPACES; do
   if echo "$NAMESPACES" | grep "^$NAMESPACE$"; then

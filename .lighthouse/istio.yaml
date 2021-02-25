@@ -47,7 +47,6 @@ spec:
           workingDir: /workspace
         - name: generate
           image: dippynark/cicd-demo:v1.0.0
-          imagePullPolicy: Always
           command:
           - addons/istio/install.sh
           workingDir: /workspace/source
