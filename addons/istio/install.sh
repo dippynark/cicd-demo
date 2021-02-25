@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-ISTIO_TARGET_VERSION="1.9.0"
+ISTIO_TARGET_VERSION="1.8.0"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Change to script directory
