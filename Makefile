@@ -23,9 +23,6 @@ TEKTON_DASHBOARD_VERSION = 0.14.0
 
 SHELL=/bin/bash -o pipefail
 
-istio:
-	scripts/istio.sh
-
 include lib.mk
 
 generate: setup \

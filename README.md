@@ -1,12 +1,19 @@
 # CI/CD Demo
 
+This is a demo repository to complement my [Kubernetes-Native CI/CD blog
+post](https://www.jetstack.io/blog/kubernetes-native-cicd/).
+
 Prerequisites:
 
+- [gcloud](https://cloud.google.com/sdk/docs/install) configured for a GCP account with available
+  credits (using the [Free Tier](https://cloud.google.com/free) or otherwise)
 - Docker
 - kubectl
 - GitHub user account
 - GitHub bot account
-- A domain
+- Domain to configure hostnames:
+  - tekton
+  - lighthouse
 
 ## Setup
 
@@ -16,15 +23,28 @@ Create cluster:
 gcloud container clusters create cicd-demo --machine-type=n1-standard-2
 ```
 
-Clone repository and set the following variables at the top of the Makefile:
+Clone this repository and set the following variables at the top of the Makefile:
 
 - DOMAIN - Domain to expose Lighthouse hook and Tekton dashboard
-- GITHUB_BOT - GitHub user used for automation
+- GITHUB_BOT - GitHub bot account used for automation
 - GITHUB_OWNER - Owner of cloned repository
 - GITHUB_REPOSITORY - Name of cloned repository
 
-Run `make docker_generate` to apply the changes, update OWNERS file, commit changes and push to main
-branch. Add the bot account as a collaborator.
+Run `make docker_generate` to apply the changes.
+
+Update the [OWNERS file](https://www.kubernetes.dev/docs/guide/owners/):
+
+```sh
+GITHUB_OWNER="dippynark"
+cat <<EOF > OWNERS
+approvers:
+- $GITHUB_OWNER
+reviewers:
+- $GITHUB_OWNER
+EOF
+```
+
+Commit the changes, push to the main branch and add the bot account as a collaborator.
 
 Setup variables:
 
@@ -62,9 +82,9 @@ metadata:
 EOF
 ```
 
-Flux should sync all manifests to the cluster.
+Flux should sync all manifests in the [manifests](manifests) directory to the cluster.
 
-Create Lighthouse and Tekton secrets:
+Once the manifests have synced, create the Lighthouse and Tekton secrets:
 
 ```sh
 kubectl apply -f - <<EOF
@@ -115,8 +135,9 @@ metadata:
 EOF
 ```
 
-Currently, cert-manager should be trying to provision a certificate for your Lighthouse webhook and
-Tekton dashboard but it cannot since which haven't configured DNS yet. We should fix this.
+Currently, [cert-manager](https://github.com/jetstack/cert-manager) should be trying to provision a
+certificate for your Lighthouse webhook and Tekton dashboard but it cannot since we haven't
+configured DNS yet.
 
 You should have a LoadBalancer Service for Nginx ingress:
 
@@ -124,8 +145,8 @@ You should have a LoadBalancer Service for Nginx ingress:
 kubectl get svc -n ingress-nginx ingress-nginx-controller
 ```
 
-Point the Lighthouse webhook domain (`lighthouse.DOMAIN`) and the Tekton Dashboard domain
-(`tekton.DOMAIN`) at the Nginx ingress external IP. Eventually the certificates should be
+Point the Lighthouse webhook domain (`lighthouse.$DOMAIN`) and the Tekton Dashboard domain
+(`tekton.$DOMAIN`) at the Nginx ingress external IP. Eventually the certificates should be
 provisioned:
 
 ```sh
@@ -136,7 +157,15 @@ kubectl get certificate -n tekton-pipelines tekton-dashboard-tls
 Finally, we create a webhook in the GitHub repository pointing at the Lighthouse webhook with the
 following non-default options:
 
-- Payload URL: `https://lighthouse.DOMAIN/hook`
+- Payload URL: `https://lighthouse.$DOMAIN/hook`
 - Content type: `application/json`
-- Secret: `echo $HMAC_TOKEN`
+- Secret: `$HMAC_TOKEN`
 - Which events would you like to trigger this webhook?: `Send me everything.`
+
+## Usage
+
+Generate manifests directory:
+
+```sh
+make docker_generate
+```

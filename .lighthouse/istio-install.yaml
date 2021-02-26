@@ -6,7 +6,7 @@ spec:
   serviceAccountName: istio-install
   params:
   - name: ISTIO_TARGET_VERSION
-    value: "1.8.1"
+    value: "1.9.0"
   - name: NAMESPACES
     value: "bookinfo"
   pipelineRef:
