@@ -11,3 +11,4 @@ spec:
     value: "bookinfo"
   pipelineRef:
     name: istio-install
+
