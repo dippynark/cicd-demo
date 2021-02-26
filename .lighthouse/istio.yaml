@@ -1,9 +1,9 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: istio
+  name: istio-install
 spec:
-  serviceAccountName: istio
+  serviceAccountName: istio-install
   params:
   - name: ISTIO_TARGET_VERSION
     value: "1.8.1"
@@ -11,14 +11,14 @@ spec:
     value: "bookinfo"
   pipelineSpec:
     params:
-    - description: Istio version to upgrade to
+    - description: Istio version to install or upgrade to
       name: ISTIO_TARGET_VERSION
       type: string
     - description: Namespaces to inject sidecars into
       name: NAMESPACES
       type: string
     tasks:
-    - name: install
+    - name: istio-install
       params:
       - name: ISTIO_TARGET_VERSION
         value: $(params.ISTIO_TARGET_VERSION)
@@ -26,7 +26,7 @@ spec:
         value: $(params.NAMESPACES)
       taskSpec:
         params:
-        - description: Istio version to upgrade to
+        - description: Istio version to install or upgrade to
           name: ISTIO_TARGET_VERSION
           type: string
         - description: Namespaces to inject sidecars into
@@ -35,7 +35,7 @@ spec:
         stepTemplate:
           name: ""
         steps:
-        - name: install
+        - name: istio-install
           image: dippynark/cicd-demo:v1.0.0
           command:
           - /bin/bash
