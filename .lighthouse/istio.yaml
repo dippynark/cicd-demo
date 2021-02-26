@@ -7,31 +7,33 @@ spec:
   params:
   - name: ISTIO_TARGET_VERSION
     value: "1.8.1"
-  - name: NAMEPSACES
-    values: "bookinfo"
+  - name: NAMESPACES
+    value: "bookinfo"
   pipelineSpec:
     params:
     - description: Istio version to upgrade to
       name: ISTIO_TARGET_VERSION
       type: string
     - description: Namespaces to inject sidecars into
-      name: NAMEPSACES
+      name: NAMESPACES
       type: string
     tasks:
     - name: install
       params:
       - name: ISTIO_TARGET_VERSION
         value: $(params.ISTIO_TARGET_VERSION)
+      - name: NAMESPACES
+        value: $(params.NAMESPACES)
       taskSpec:
         params:
         - description: Istio version to upgrade to
           name: ISTIO_TARGET_VERSION
           type: string
+        - description: Namespaces to inject sidecars into
+          name: NAMESPACES
+          type: string
         stepTemplate:
           name: ""
-          volumeMounts:
-          - mountPath: /workspace
-            name: workspace
         steps:
         - name: install
           image: dippynark/cicd-demo:v1.0.0
@@ -97,7 +99,3 @@ spec:
               fi
               istioctl x uninstall -y --revision="$(echo "$ISTIO_VERSION" | tr '.' '-')"
             done
-          workingDir: /workspace/source
-        volumes:
-        - name: workspace
-          emptyDir: {}
