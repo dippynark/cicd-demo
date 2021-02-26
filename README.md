@@ -13,7 +13,7 @@ Prerequisites:
 Create cluster:
 
 ```sh
-gcloud container clusters create cicd-demo
+gcloud container clusters create cicd-demo --machine-type=n1-standard-2
 ```
 
 Clone repository and set the following variables at the top of the Makefile:
