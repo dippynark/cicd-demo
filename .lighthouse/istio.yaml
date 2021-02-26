@@ -6,9 +6,9 @@ spec:
   serviceAccountName: istio-install
   params:
   - name: ISTIO_TARGET_VERSION
-    value: "1.8.1"
+    value: "1.9.0"
   - name: NAMESPACES
-    value: "bookinfo"
+    value: "bookinfo,cert-manager"
   pipelineSpec:
     params:
     - description: Istio version to install or upgrade to
@@ -46,20 +46,18 @@ spec:
           - |
             set -o pipefail
 
-            # apt-get update && apt-get install -y
+            apt-get update && apt-get install -y curl jq
+
+            # Install kubectl
+            # https://kubernetes.io/docs/tasks/tools/install-kubectl/
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
             ISTIO_TARGET_VERSION="$(inputs.params.ISTIO_TARGET_VERSION)"
             SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
             # Change to script directory
             cd "$(dirname "${BASH_SOURCE[0]}")"
-
-            # Install Istioctl
-            which istioctl || {
-              export ISTIO_VERSION="$ISTIO_TARGET_VERSION"
-              curl -L https://istio.io/downloadIstioctl | sh -
-              export PATH=$HOME/.istioctl/bin:$PATH
-            }
 
             ISTIO_TARGET_REVISION=$(echo "$ISTIO_TARGET_VERSION" | tr '.' '-')
             ISTIO_EXISTING_VERSIONS=$(istioctl version -o json | grep -v "no running Istio pods" | jq -r '.meshVersion[]? | .Info.tag')
