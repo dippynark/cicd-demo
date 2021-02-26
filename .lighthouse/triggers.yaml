@@ -14,9 +14,9 @@ spec:
     branches:
     - main
     - master
-  - name: istio
-    source: istio.yaml
-    run_if_changed: .lighthouse/istio.yaml
+  - name: istio-install
+    source: istio-install.yaml
+    run_if_changed: .lighthouse/istio-install.yaml
     branches:
     - main
     - master

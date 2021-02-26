@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: istio-install
+spec:
+  serviceAccountName: istio-install
+  params:
+  - name: ISTIO_TARGET_VERSION
+    value: "1.9.0"
+  - name: NAMESPACES
+    value: "bookinfo"
+  pipelineRef:
+    name: istio-install
