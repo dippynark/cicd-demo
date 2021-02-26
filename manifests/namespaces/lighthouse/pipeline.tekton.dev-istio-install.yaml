@@ -1,0 +1,102 @@
+---
+# Source: local/templates/lighthouse/istio-install-pipeline.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: istio-install
+  namespace: lighthouse
+spec:
+  params:
+    - description: Istio version to install or upgrade to
+      name: ISTIO_TARGET_VERSION
+      type: string
+    - description: Comma delimited list of Namespaces to enable Istio sidecar injection
+      name: NAMESPACES
+      type: string
+  tasks:
+    - name: istio-install
+      params:
+        - name: ISTIO_TARGET_VERSION
+          value: $(params.ISTIO_TARGET_VERSION)
+        - name: NAMESPACES
+          value: $(params.NAMESPACES)
+      taskSpec:
+        params:
+          - description: Istio version to install or upgrade to
+            name: ISTIO_TARGET_VERSION
+            type: string
+          - description: Comma delimited list of Namespaces to enable Istio sidecar injection
+            name: NAMESPACES
+            type: string
+        stepTemplate:
+          name: ""
+        steps:
+          - name: istio-install
+            image: istio/istioctl:$(inputs.params.ISTIO_TARGET_VERSION)
+            securityContext:
+              runAsUser: 0
+            command:
+              - /bin/bash
+            args:
+              - -uxec
+              - |
+                set -o pipefail
+
+                # Install dependencies
+                apt-get update && apt-get install -y curl jq
+
+                # Install kubectl
+                # https://kubernetes.io/docs/tasks/tools/install-kubectl/
+                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+                # Setup variables
+                ISTIO_TARGET_VERSION="$(inputs.params.ISTIO_TARGET_VERSION)"
+                NAMESPACES=$(echo "$(inputs.params.NAMESPACES)" | tr ',' '\n')
+                ISTIO_TARGET_REVISION=$(echo "$ISTIO_TARGET_VERSION" | tr '.' '-')
+                ISTIO_EXISTING_VERSIONS=$(istioctl version -o json | grep -v "no running Istio pods" | jq -r '.meshVersion[]? | .Info.tag')
+
+                # Define rollout function to pick up Namespace injection label changes
+                rollout() {
+                  local NAMESPACE="$1"
+                  local RESOURCE="$2"
+                  local NAMES=$(kubectl get "$RESOURCE" -n "$NAMESPACE" --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
+                  for NAME in $NAMES; do
+                    kubectl rollout restart "$RESOURCE" -n "$NAMESPACE" "$NAME"
+                    kubectl rollout status "$RESOURCE" -n "$NAMESPACE" "$NAME"
+                  done
+                }
+
+                # Install target version
+                istioctl install -y \
+                  --set tag="$ISTIO_TARGET_VERSION" \
+                  --set revision="$ISTIO_TARGET_REVISION"
+
+                # Remove Namespace injection labels
+                LABELLED_NAMESPACES=$(kubectl get ns -l istio.io/rev --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
+                for NAMESPACE in $LABELLED_NAMESPACES; do
+                  # Ignore Namespaces that we want to be labelled
+                  if echo "$NAMESPACES" | grep "^$NAMESPACE$"; then
+                    continue
+                  fi
+                  kubectl label namespace "$NAMESPACE" istio.io/rev-
+                  rollout "$NAMESPACE" deployments
+                  rollout "$NAMESPACE" statefulsets
+                  rollout "$NAMESPACE" daemonsets
+                done
+
+                # Add injection labels
+                for NAMESPACE in $NAMESPACES; do
+                  kubectl label namespace "$NAMESPACE" istio.io/rev="$ISTIO_TARGET_REVISION" --overwrite
+                  rollout "$NAMESPACE" deployments
+                  rollout "$NAMESPACE" statefulsets
+                  rollout "$NAMESPACE" daemonsets
+                done
+
+                # Uninstall previous version(s)
+                for ISTIO_VERSION in $ISTIO_EXISTING_VERSIONS; do
+                  if [ "$ISTIO_VERSION" = "$ISTIO_TARGET_VERSION" ]; then
+                    continue
+                  fi
+                  istioctl x uninstall -y --revision="$(echo "$ISTIO_VERSION" | tr '.' '-')"
+                done
