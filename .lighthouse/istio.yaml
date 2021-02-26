@@ -8,13 +8,13 @@ spec:
   - name: ISTIO_TARGET_VERSION
     value: "1.9.0"
   - name: NAMESPACES
-    value: "bookinfo,cert-manager"
+    value: "bookinfo"
   pipelineSpec:
     params:
     - description: Istio version to install or upgrade to
       name: ISTIO_TARGET_VERSION
       type: string
-    - description: Namespaces to inject sidecars into
+    - description: Comma delimited list of Namespaces to enable Istio sidecar injection
       name: NAMESPACES
       type: string
     tasks:
@@ -29,7 +29,7 @@ spec:
         - description: Istio version to install or upgrade to
           name: ISTIO_TARGET_VERSION
           type: string
-        - description: Namespaces to inject sidecars into
+        - description: Comma delimited list of Namespaces to enable Istio sidecar injection
           name: NAMESPACES
           type: string
         stepTemplate:
@@ -46,6 +46,7 @@ spec:
           - |
             set -o pipefail
 
+            # Install dependencies
             apt-get update && apt-get install -y curl jq
 
             # Install kubectl
@@ -53,45 +54,47 @@ spec:
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
+            # Setup variables
             ISTIO_TARGET_VERSION="$(inputs.params.ISTIO_TARGET_VERSION)"
-            SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
-            # Change to script directory
-            cd "$(dirname "${BASH_SOURCE[0]}")"
-
+            NAMESPACES=$(echo "$(inputs.params.NAMESPACES)" | tr ',' '\n')
             ISTIO_TARGET_REVISION=$(echo "$ISTIO_TARGET_VERSION" | tr '.' '-')
             ISTIO_EXISTING_VERSIONS=$(istioctl version -o json | grep -v "no running Istio pods" | jq -r '.meshVersion[]? | .Info.tag')
+
+            # Define rollout function to pick up Namespace injection label changes
+            rollout() {
+              local NAMESPACE="$1"
+              local RESOURCE="$2"
+              local NAMES=$(kubectl get "$RESOURCE" -n "$NAMESPACE" --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
+              for NAME in $NAMES; do
+                kubectl rollout restart "$RESOURCE" -n "$NAMESPACE" "$NAME"
+                kubectl rollout status "$RESOURCE" -n "$NAMESPACE" "$NAME"
+              done
+            }
 
             # Install target version
             istioctl install -y \
               --set tag="$ISTIO_TARGET_VERSION" \
               --set revision="$ISTIO_TARGET_REVISION"
 
-            # Remove Namespaces
-            NAMESPACES=$(echo "$(inputs.params.NAMESPACES)" | tr ',' '\n')
-            ALL_NAMESPACES=$(kubectl get ns -l istio.io/rev --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
-            for NAMESPACE in $ALL_NAMESPACES; do
+            # Remove Namespace injection labels
+            LABELLED_NAMESPACES=$(kubectl get ns -l istio.io/rev --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
+            for NAMESPACE in $LABELLED_NAMESPACES; do
+              # Ignore Namespaces that we want to be labelled
               if echo "$NAMESPACES" | grep "^$NAMESPACE$"; then
                 continue
               fi
               kubectl label namespace "$NAMESPACE" istio.io/rev-
-              # Roll Deployments
-              DEPLOYMENTS=$(kubectl get deployments -n "$NAMESPACE" --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
-              for DEPLOYMENT in $DEPLOYMENTS; do
-                kubectl rollout restart deployment -n "$NAMESPACE" "$DEPLOYMENT"
-                kubectl rollout status deployment -n "$NAMESPACE" "$DEPLOYMENT"
-              done
+              rollout "$NAMESPACE" deployments
+              rollout "$NAMESPACE" statefulsets
+              rollout "$NAMESPACE" daemonsets
             done
 
-            # Add Namespaces
+            # Add injection labels
             for NAMESPACE in $NAMESPACES; do
               kubectl label namespace "$NAMESPACE" istio.io/rev="$ISTIO_TARGET_REVISION" --overwrite
-              # Roll Deployments
-              DEPLOYMENTS=$(kubectl get deployments -n "$NAMESPACE" --no-headers --ignore-not-found -o jsonpath='{.items[*].metadata.name}')
-              for DEPLOYMENT in $DEPLOYMENTS; do
-                kubectl rollout restart deployment -n "$NAMESPACE" "$DEPLOYMENT"
-                kubectl rollout status deployment -n "$NAMESPACE" "$DEPLOYMENT"
-              done
+              rollout "$NAMESPACE" deployments
+              rollout "$NAMESPACE" statefulsets
+              rollout "$NAMESPACE" daemonsets
             done
 
             # Uninstall previous version(s)
