@@ -29,5 +29,5 @@ if [ $SOURCE_BRANCH = main ] || [ $SOURCE_BRANCH = master ]; then
 fi
 
 # Replace source values in destination
-sed -i "s/branch: .*/branch: $SOURCE_BRANCH/" $DESTINATION_CLUSTER_SYNC
-sed -i "s#path: .*#path: $SOURCE_PATH#" $DESTINATION_CLUSTER_SYNC
+sed -i -r "s/^    branch: .*/    branch: $SOURCE_BRANCH/" $DESTINATION_CLUSTER_SYNC
+sed -i -r "s#^  path: .*#  path: $SOURCE_PATH#1" $DESTINATION_CLUSTER_SYNC
