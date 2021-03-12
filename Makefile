@@ -8,7 +8,6 @@ KUBECTL_VERSION = 1.19
 
 MANIFESTS = config/manifests
 
-BOOKINFO_VERSION = release-1.9
 # We can't use >0.16.1 since v1alpha2 is required for Cluster API
 CERT_MANAGER_VERSION = 0.16.1
 INGRESS_NGINX_VERSION = 0.44.0
@@ -20,8 +19,7 @@ CALICO_VERSION = 3.18
 
 SHELL=/bin/bash -o pipefail
 
-generate: bookinfo \
-	calico \
+generate: calico \
 	cert_manager \
 	cluster_api \
 	cluster_api_provider_kuberentes \
@@ -30,12 +28,6 @@ generate: bookinfo \
 	tekton_pipelines
 
 ## Addons
-
-bookinfo:
-	rm -rf $(call base,bookinfo)
-	curl -L https://raw.githubusercontent.com/istio/istio/$(BOOKINFO_VERSION)/samples/bookinfo/platform/kube/bookinfo.yaml \
-		| kfmt -n bookinfo --create-missing-namespaces -o $(call base,bookinfo)/resources
-	$(call kustomize,bookinfo)
 
 calico:
 	rm -rf $(call base,calico)
