@@ -97,6 +97,7 @@ clusters:
 	rm -rf clusters/management/infrastructure
 	mkdir -p clusters/management/infrastructure
 	$(call add_cluster,clusters/management/infrastructure,development)
+	$(call add_cluster,clusters/management/infrastructure,staging)
 
 ## Docker
 

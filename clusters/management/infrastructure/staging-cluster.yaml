@@ -1,0 +1,162 @@
+apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+kind: KubernetesCluster
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  controlPlaneServiceType: LoadBalancer
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+    serviceDomain: cluster.local
+    services:
+      cidrBlocks:
+      - 10.128.0.0/12
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: staging
+  infrastructureRef:
+    apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+    kind: KubernetesCluster
+    name: staging
+---
+apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+kind: KubernetesMachineTemplate
+metadata:
+  name: staging-controller
+  namespace: infrastructure
+spec:
+  template:
+    spec:
+      allowRecreation: true
+      containers:
+      - name: kind
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /var/lib/etcd
+          name: var-lib-etcd
+      volumeClaimTemplates:
+      - metadata:
+          name: var-lib-etcd
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+          storageClassName: standard
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: KubeadmControlPlane
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  infrastructureTemplate:
+    apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+    kind: KubernetesMachineTemplate
+    name: staging-controller
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      controllerManager:
+        extraArgs:
+          enable-hostpath-provisioner: "true"
+    initConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs:
+          cgroups-per-qos: "false"
+          enforce-node-allocatable: ""
+          eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+    joinConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs:
+          cgroups-per-qos: "false"
+          enforce-node-allocatable: ""
+          eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+  replicas: 1
+  version: v1.17.17
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          kubeletExtraArgs:
+            cgroups-per-qos: "false"
+            enforce-node-allocatable: ""
+            eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+---
+apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+kind: KubernetesMachineTemplate
+metadata:
+  name: staging-worker
+  namespace: infrastructure
+spec:
+  template:
+    spec:
+      containers:
+      - name: kind
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineDeployment
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  clusterName: staging
+  replicas: 1
+  selector:
+    matchLabels: null
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: KubeadmConfigTemplate
+          name: staging
+      clusterName: staging
+      infrastructureRef:
+        apiVersion: infrastructure.dippynark.co.uk/v1alpha3
+        kind: KubernetesMachineTemplate
+        name: staging-worker
+      version: v1.17.17
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineHealthCheck
+metadata:
+  name: staging
+  namespace: infrastructure
+spec:
+  clusterName: staging
+  nodeStartupTimeout: 10m
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: staging
+  unhealthyConditions:
+  - status: Unknown
+    timeout: 2m
+    type: Ready
+  - status: "False"
+    timeout: 2m
+    type: Ready
