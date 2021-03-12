@@ -9,7 +9,7 @@ Prerequisites:
   credits (using the [Free Tier](https://cloud.google.com/free) or otherwise)
 - kubectl
 - Docker
-- [flux](https://toolkit.fluxcd.io/guides/installation/#install-the-flux-cli)
+- [Flux](https://toolkit.fluxcd.io/guides/installation/#install-the-flux-cli)
 - GitHub user account
 - GitHub bot account
 - Domain to configure hostnames:

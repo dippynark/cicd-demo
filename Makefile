@@ -24,6 +24,7 @@ generate: bookinfo \
 	calico \
 	cert_manager \
 	cluster_api \
+	cluster_api_provider_kuberentes \
 	infrastructure \
 	ingress_nginx \
 	tekton_pipelines
@@ -50,22 +51,25 @@ cert_manager:
 
 cluster_api:
 	rm -rf $(call base,cluster-api)
-	# Core
 	# Enable ClusterResourceSet
 	# https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html
 	# Unfortunately `clusterctl generate yaml` strips Namespace names from output manifests, so we perform variable substituion manually
 	curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v$(CLUSTER_API_VERSION)/core-components.yaml | sed 's/$${EXP_CLUSTER_RESOURCE_SET:=false}/true/g; s/$${EXP_MACHINE_POOL:=false}/false/g' > core-components.yaml
 	curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v$(CLUSTER_API_VERSION)/bootstrap-components.yaml | sed 's/$${EXP_MACHINE_POOL:=false}/false/g' > bootstrap-components.yaml
 	curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v$(CLUSTER_API_VERSION)/control-plane-components.yaml | sed 's/$${EXP_MACHINE_POOL:=false}/false/g' > control-plane-components.yaml
-	# Kubernetes infrastructure provider
-	curl -LO https://github.com/dippynark/cluster-api-provider-kubernetes/releases/download/v$(CLUSTER_API_PROVIDER_KUBERNETES_VERSION)/infrastructure-components.yaml
 	# Format
-	kfmt -i core-components.yaml -i bootstrap-components.yaml -i control-plane-components.yaml -i infrastructure-components.yaml \
+	kfmt -i core-components.yaml -i bootstrap-components.yaml -i control-plane-components.yaml \
 		--gvk-scope Certificate.cert-manager.io/v1alpha2:Namespaced --gvk-scope Issuer.cert-manager.io/v1alpha2:Namespaced \
-		--create-missing-namespaces \
 		--remove \
 		-o $(call base,cluster-api)/resources
 	$(call kustomize,cluster-api)
+
+cluster_api_provider_kuberentes:
+	rm -rf $(call base,cluster-api-provider-kuberentes)
+	curl -L https://github.com/dippynark/cluster-api-provider-kubernetes/releases/download/v$(CLUSTER_API_PROVIDER_KUBERNETES_VERSION)/infrastructure-components.yaml | \
+		kfmt --gvk-scope Certificate.cert-manager.io/v1alpha2:Namespaced --gvk-scope Issuer.cert-manager.io/v1alpha2:Namespaced \
+			-o $(call base,cluster-api-provider-kuberentes)/resources
+	$(call kustomize,cluster-api-provider-kuberentes)
 
 infrastructure:
 	curl -LO https://docs.projectcalico.org/archive/v$(CALICO_VERSION)/manifests/calico.yaml
