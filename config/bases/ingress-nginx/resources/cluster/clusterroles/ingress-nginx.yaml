@@ -4,10 +4,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    helm.sh/chart: ingress-nginx-3.23.0
+    helm.sh/chart: ingress-nginx-3.19.0
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/version: 0.44.0
+    app.kubernetes.io/version: 0.43.0
     app.kubernetes.io/managed-by: Helm
   name: ingress-nginx
 rules:
@@ -35,6 +35,7 @@ rules:
     verbs:
       - get
       - list
+      - update
       - watch
   - apiGroups:
       - extensions
