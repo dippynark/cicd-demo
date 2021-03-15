@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
 - development-cluster.yaml
 - staging-cluster.yaml
+- production-cluster.yaml

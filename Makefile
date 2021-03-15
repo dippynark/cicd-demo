@@ -94,6 +94,7 @@ clusters:
 	mkdir -p clusters/management/infrastructure
 	$(call add_cluster,clusters/management/infrastructure,development)
 	$(call add_cluster,clusters/management/infrastructure,staging)
+	$(call add_cluster,clusters/management/infrastructure,production)
 
 ## Docker
 
