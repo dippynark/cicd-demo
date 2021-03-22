@@ -22,7 +22,7 @@ SHELL=/bin/bash -o pipefail
 generate: calico \
 	cert_manager \
 	cluster_api \
-	cluster_api_provider_kuberentes \
+	cluster_api_provider_kubernetes \
 	infrastructure \
 	ingress_nginx \
 	tekton_pipelines
@@ -56,12 +56,12 @@ cluster_api:
 		-o $(call base,cluster-api)/resources
 	$(call kustomize,cluster-api)
 
-cluster_api_provider_kuberentes:
-	rm -rf $(call base,cluster-api-provider-kuberentes)
+cluster_api_provider_kubernetes:
+	rm -rf $(call base,cluster-api-provider-kubernetes)
 	curl -L https://github.com/dippynark/cluster-api-provider-kubernetes/releases/download/v$(CLUSTER_API_PROVIDER_KUBERNETES_VERSION)/infrastructure-components.yaml | \
 		kfmt --gvk-scope Certificate.cert-manager.io/v1alpha2:Namespaced --gvk-scope Issuer.cert-manager.io/v1alpha2:Namespaced \
-			-o $(call base,cluster-api-provider-kuberentes)/resources
-	$(call kustomize,cluster-api-provider-kuberentes)
+			-o $(call base,cluster-api-provider-kubernetes)/resources
+	$(call kustomize,cluster-api-provider-kubernetes)
 
 infrastructure:
 	curl -LO https://docs.projectcalico.org/archive/v$(CALICO_VERSION)/manifests/calico.yaml
